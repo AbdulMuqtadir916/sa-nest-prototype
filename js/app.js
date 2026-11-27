@@ -94,7 +94,7 @@ function renderTopbar(u) {
 function boot() {
   loadStore();
   $('shade').addEventListener('click', e => { if (e.target === $('shade')) closeModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); trapModalFocus(e); });
   if (currentUser()) page = defaultPage(currentUser());
   render();
 }

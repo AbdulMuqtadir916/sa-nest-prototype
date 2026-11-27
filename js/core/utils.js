@@ -41,7 +41,11 @@ function table(headers, rows, empty = 'Nothing to show here yet.') {
     `<tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 
-const field = (label, inner, cls = '') => `<div class="field ${cls}"><label>${label}</label>${inner}</div>`;
+/* The label points at the first control inside `inner` (by its id) so screen readers can name the field. */
+function field(label, inner, cls = '') {
+  const id = inner.match(/<(?:input|select|textarea)[^>]*\bid="([^"]+)"/)?.[1];
+  return `<div class="field ${cls}"><label${id ? ` for="${id}"` : ''}>${label}</label>${inner}</div>`;
+}
 const sel = (id, options, attrs = '') => `<select id="${id}" ${attrs}>${options}</select>`;
 const inp = (id, value = '', attrs = '') => `<input id="${id}" value="${esc(value)}" ${attrs}>`;
 const value = id => $(id)?.value.trim() || '';
@@ -68,12 +72,28 @@ function statCard(label, number, unit, note = '') {
 /* ---------- Modal and toast ---------- */
 
 function openModal(title, html) {
+  if (!$('shade').classList.contains('open')) modalReturnFocus = document.activeElement;
   $('mt').textContent = title;
   $('mc').innerHTML = html;
   $('shade').classList.add('open');
   $('mc').querySelector('input,select,textarea')?.focus();
 }
-function closeModal() { $('shade').classList.remove('open'); }
+function closeModal() {
+  $('shade').classList.remove('open');
+  modalReturnFocus?.focus?.();
+}
+let modalReturnFocus = null;
+
+/* Keeps Tab and Shift+Tab inside the open dialog. Called from the keydown listener in app.js. */
+function trapModalFocus(e) {
+  if (e.key !== 'Tab' || !$('shade').classList.contains('open')) return;
+  const items = [...$('shade').querySelectorAll('button,input,select,textarea,a[href],[tabindex]:not([tabindex="-1"])')].filter(el => !el.disabled && el.offsetParent !== null);
+  if (!items.length) return;
+  const first = items[0], last = items.at(-1);
+  if (!$('shade').contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+  else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
 function formError(text) { $('formerr').textContent = text; }
 function modalFoot(actionText, action) {
   return `<div id="formerr" class="err" role="alert"></div><div class="modalfoot">${btn('Cancel', 'closeModal()')}${btn(actionText, action, 'primary')}</div>`;
