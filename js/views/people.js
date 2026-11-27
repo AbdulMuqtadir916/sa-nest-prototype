@@ -230,15 +230,26 @@ function saveDeactivate(id) {
   closeModal(); render(); toast(`${p.name} deactivated. Their seat is free.`);
 }
 
-function reactivateUser(id) {
+function reactivateUser(id, newManagerId = '') {
   const p = findUser(id), org = currentOrg();
   if (!requireWritable(org)) return;
   const block = roleLimitBlock(org, p.role) || (p.role === 'Engineer' ? engineerLimitBlock(org, p.facilityIds) : '');
   if (block) return limitBlockedModal(block, ROLE_LIMIT_KEY[p.role] || 'engineersPerFacility');
-  if (p.role === 'Engineer' && userStatus(findUser(p.managerId) || {}) !== 'Active') p.managerId = '';
+  // Every Engineer reports to exactly one Manager: if theirs is gone, pick a new one before reactivating.
+  if (p.role === 'Engineer' && !newManagerId && !(findUser(p.managerId) && usesSeat(findUser(p.managerId)))) return reportingManagerModal(p, org);
+  if (newManagerId) p.managerId = newManagerId;
   p.status = p.password ? 'Active' : 'Invited';
   if (!p.password) p.invitedAt = nowIso();
-  logAction('User reactivated', `${p.name} (${p.role})`);
+  logAction('User reactivated', `${p.name} (${p.role})${newManagerId ? ' · now reports to ' + userName(newManagerId) : ''}`);
+  closeModal();
   render();
-  toast(p.managerId === '' ? `${p.name} reactivated. Choose a reporting Manager for them.` : `${p.name} reactivated`);
+  toast(`${p.name} reactivated`);
+}
+
+function reportingManagerModal(p, org) {
+  const managers = db.users.filter(m => m.role === 'Manager' && m.orgIds.includes(org.id) && usesSeat(m));
+  if (!managers.length) return toast('Invite a Manager first: every Engineer reports to one.');
+  openModal('Reactivate ' + p.name, `<p class="muted">${esc(userName(p.managerId))} is no longer active. Choose who ${esc(p.name)} reports to.</p>
+    ${field('Reporting Manager', sel('rm', managers.map(m => opt(m.id, m.name)).join('')))}
+    ${modalFoot('Reactivate', `reactivateUser('${p.id}', value('rm'))`)}`);
 }
