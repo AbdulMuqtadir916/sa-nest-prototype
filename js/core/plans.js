@@ -6,8 +6,10 @@
  *  - Pending invitations count toward their role's limit. Expired or cancelled invitations,
  *    deactivated users and archived facilities do not.
  *  - Lowering a limit below current use deletes nothing; the organisation just cannot add more.
- *  - After the plan's end date, or while suspended, the organisation is read-only:
- *    people can sign in, view and export, but cannot add or change anything.
+ *  - After the plan's end date the organisation is read-only: people can sign in, view and export,
+ *    but cannot add or change anything.
+ *  - While waiting for a plan, or after SA-NEST stops the plan ('Suspended'), the same applies except
+ *    that the Org Admin can still edit the organisation profile (decision 5).
  */
 
 /* 'Awaiting plan' | 'Active' | 'Suspended' | 'Expired' */
@@ -24,7 +26,7 @@ const orgIsWritable = org => orgState(org) === 'Active';
 
 function readOnlyReason(org) {
   const state = orgState(org);
-  if (state === 'Suspended') return 'This organisation is suspended by SA-NEST. You can view and export, but not add or change anything.';
+  if (state === 'Suspended') return 'SA-NEST has stopped this organisation\'s plan. You can view, export and edit the profile; nothing else can be added or changed until the plan is restarted.';
   if (state === 'Expired') return `This organisation's plan ended on ${fmtDate(org.plan.end)}. You can view and export, but not add or change anything.`;
   if (state === 'Awaiting plan') return 'SA-NEST has not applied a plan to this organisation yet. You can edit the profile; facilities and invitations unlock once the plan is applied.';
   return '';

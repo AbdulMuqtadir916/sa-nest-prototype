@@ -26,9 +26,9 @@ const opt = (value, text, selected) => `<option value="${esc(value)}" ${value ==
 const btn = (text, onclick, cls = '', attrs = '') => `<button class="${cls}" onclick="${onclick}" ${attrs}>${text}</button>`;
 
 const BADGE_TONES = {
-  good: ['Active', 'Approved', 'Closed', 'Imported', 'Resolved'],
-  warn: ['Invited', 'Awaiting plan', 'Submitted', 'Draft', 'Data pending', 'Open', 'Read-only', 'Revision pending'],
-  bad: ['Expired', 'Deactivated', 'Suspended', 'Returned', 'Invalid', 'Superseded', 'Archived', 'At limit']
+  good: ['Active', 'Recorded', 'Closed', 'Imported', 'Resolved'],
+  warn: ['Invited', 'Awaiting plan', 'Data pending', 'Open'],
+  bad: ['Expired', 'Deactivated', 'Suspended', 'Superseded', 'Archived']
 };
 function badge(status) {
   const tone = Object.keys(BADGE_TONES).find(k => BADGE_TONES[k].includes(status)) || '';

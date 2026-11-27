@@ -23,12 +23,13 @@ function facilityCard(u, org, f) {
   const manage = can(u, 'facility.manage');
   return `<div class="card facility-card">
     <div class="row between"><div class="iconbox">▣</div>${badge(archived ? 'Archived' : 'Active')}</div>
-    <h2>${esc(f.name)}</h2><small>${esc(f.type)} · ${esc(f.city)}${f.address ? ' · ' + esc(f.address) : ''}</small>
+    <h2>${esc(f.name)}</h2><small>${esc(f.type)} · ${esc(f.city)}${f.address ? ' · ' + esc(f.address) : ''}${f.area ? ' · ' + fmt(f.area, 0) + ' m²' : ''}</small>
+    <small>Zones: ${(f.zones || []).map(esc).join(' · ') || 'none'}</small>
     <div><small>Managers</small><p>${managers.map(m => esc(m.name)).join(', ') || '<span class="muted">None assigned</span>'}</p></div>
     <div><small>Engineers ${org.plan ? `(${engineers.length} of ${limitsOf(org).engineersPerFacility})` : ''}</small><p>${engineers.map(e => esc(e.name)).join(', ') || '<span class="muted">None assigned</span>'}</p></div>
-    <small>${typeof uploadsAtFacility === 'function' ? uploadsAtFacility(f.id).length + ' uploads recorded' : ''}</small>
+    <small>${uploadsAtFacility(f.id).length} uploads recorded</small>
     <div class="row">
-      ${!archived && canAtFacility(u, 'data.upload', f.id) && typeof startUpload === 'function' ? btn('Upload data', `startUpload('${f.id}')`, 'primary') : ''}
+      ${!archived && orgIsWritable(org) && canAtFacility(u, 'data.upload', f.id) ? btn('Upload data', `startUpload('${f.id}')`, 'primary') : ''}
       ${manage && !archived ? btn('Edit', `facilityModal('${f.id}')`) + btn('Managers', `facilityManagersModal('${f.id}')`) + btn('Archive', `archiveFacility('${f.id}')`, 'danger') : ''}
       ${manage && archived ? btn('Restore', `restoreFacility('${f.id}')`) : ''}
     </div></div>`;
@@ -44,6 +45,8 @@ function facilityModal(id = '') {
     ${field('Facility type', sel('ft', FACILITY_TYPES.map(t => opt(t, t, f.type)).join('')))}
     ${field('City', inp('fc', f.city))}
     ${field('Address', inp('fa', f.address))}
+    ${field('Floor area (m²)', inp('fr', f.area ?? '', 'type="number" min="0"'))}
+    ${field('Zones (optional, comma-separated)', inp('fz', (f.zones || []).join(', ')))}
     </div>${modalFoot(id ? 'Save facility' : 'Add facility', `saveFacility('${id}')`)}`);
 }
 
@@ -52,7 +55,8 @@ function saveFacility(id) {
   const name = value('fn'), city = value('fc');
   if (!name || !city) return formError('Enter the facility name and city.');
   if (db.facilities.some(f => f.orgId === org.id && f.id !== id && f.name.toLowerCase() === name.toLowerCase())) return formError('A facility with that name already exists.');
-  const fields = { name, type: value('ft'), city, address: value('fa') };
+  if (Number(value('fr')) < 0) return formError('Floor area cannot be negative.');
+  const fields = { name, type: value('ft'), city, address: value('fa'), area: Number(value('fr')) || 0, zones: [...new Set(value('fz').split(',').map(z => z.trim()).filter(Boolean))] };
   if (id) {
     Object.assign(findFacility(id), fields);
     logAction('Facility edited', name, { facilityId: id });

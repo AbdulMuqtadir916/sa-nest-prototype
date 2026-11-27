@@ -17,6 +17,9 @@ const MOCK_ORGANISATIONS = [
     name: 'Qatar Hotel Group',
     country: 'Qatar',
     industry: 'Hospitality',
+    boundary: 'Operational control',
+    standard: 'GHG Protocol',
+    dualScope2: true,
     status: 'Active',
     createdBy: 'u-oa1',
     createdAt: mockDate(-120),
@@ -32,6 +35,9 @@ const MOCK_ORGANISATIONS = [
     name: 'Gulf Healthcare Group',
     country: 'Qatar',
     industry: 'Healthcare',
+    boundary: 'Operational control',
+    standard: 'GHG Protocol',
+    dualScope2: false,
     status: 'Active',
     createdBy: 'u-oa1',
     createdAt: mockDate(-60),
@@ -47,6 +53,9 @@ const MOCK_ORGANISATIONS = [
     name: 'Desert Bloom Retail',
     country: 'Qatar',
     industry: 'Retail',
+    boundary: 'Operational control',
+    standard: 'GHG Protocol',
+    dualScope2: false,
     status: 'Active',
     createdBy: 'u-oa3',
     createdAt: mockDate(-400),
@@ -61,13 +70,14 @@ const MOCK_ORGANISATIONS = [
 
 const FACILITY_TYPES = ['Hotel', 'Hospital', 'Clinic', 'Commercial office', 'Shopping mall', 'School', 'Factory', 'Warehouse', 'Other'];
 
+/* zones are optional sub-areas used to place equipment and sources. area is floor area in m². */
 const MOCK_FACILITIES = [
-  { id: 'f1', orgId: 'o1', name: 'Doha Hotel', type: 'Hotel', city: 'Doha', address: 'West Bay', status: 'Active' },
-  { id: 'f2', orgId: 'o1', name: 'Lusail Hotel', type: 'Hotel', city: 'Lusail', address: 'Marina District', status: 'Active' },
-  { id: 'f3', orgId: 'o1', name: 'Al Wakrah Hotel', type: 'Hotel', city: 'Al Wakrah', address: 'Corniche Road', status: 'Active' },
-  { id: 'f4', orgId: 'o2', name: 'Doha Hospital', type: 'Hospital', city: 'Doha', address: 'Al Rayyan Road', status: 'Active' },
-  { id: 'f5', orgId: 'o2', name: 'Al Khor Clinic', type: 'Clinic', city: 'Al Khor', address: 'Main Street', status: 'Active' },
-  { id: 'f6', orgId: 'o3', name: 'Villaggio Store', type: 'Shopping mall', city: 'Doha', address: 'Aspire Zone', status: 'Active' }
+  { id: 'f1', orgId: 'o1', name: 'Doha Hotel', type: 'Hotel', city: 'Doha', address: 'West Bay', area: 25000, zones: ['Utility area', 'Kitchen', 'Main building'], status: 'Active' },
+  { id: 'f2', orgId: 'o1', name: 'Lusail Hotel', type: 'Hotel', city: 'Lusail', address: 'Marina District', area: 18000, zones: [], status: 'Active' },
+  { id: 'f3', orgId: 'o1', name: 'Al Wakrah Hotel', type: 'Hotel', city: 'Al Wakrah', address: 'Corniche Road', area: 14000, zones: [], status: 'Active' },
+  { id: 'f4', orgId: 'o2', name: 'Doha Hospital', type: 'Hospital', city: 'Doha', address: 'Al Rayyan Road', area: 32000, zones: ['Plant room', 'Clinical wing'], status: 'Active' },
+  { id: 'f5', orgId: 'o2', name: 'Al Khor Clinic', type: 'Clinic', city: 'Al Khor', address: 'Main Street', area: 2400, zones: [], status: 'Active' },
+  { id: 'f6', orgId: 'o3', name: 'Villaggio Store', type: 'Shopping mall', city: 'Doha', address: 'Aspire Zone', area: 3100, zones: [], status: 'Active' }
 ];
 
 /* Requests an Org Admin sends when a plan limit blocks them. */

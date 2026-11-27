@@ -37,8 +37,8 @@ const NAVIGATION = {
 /* View functions by page key. Each returns an HTML string for the main area. */
 const VIEWS = {};
 
-/* Data pages are provided by js/views/data.js and differ per role. */
-const dataNavFor = user => typeof dataPagesFor === 'function' ? dataPagesFor(user) : [];
+/* Data pages are provided by js/views/ghg.js and differ per role. */
+const dataNavFor = user => dataPagesFor(user);
 
 function navFor(user) {
   return NAVIGATION[user.role].map(([label, items]) => [label, items === 'DATA_PAGES' ? dataNavFor(user) : items]).filter(([, items]) => items.length);

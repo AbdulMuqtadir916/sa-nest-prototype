@@ -40,7 +40,7 @@ function orgAdminHome(u, org) {
         ${unassigned.length ? `<div class="notice warn section">Unassigned: ${unassigned.map(e => esc(e.name)).join(', ')}</div>` : ''}
       </div>
     </div>
-    ${typeof dataSummaryCard === 'function' ? dataSummaryCard(u, org) : ''}`;
+    ${dataSummaryCard(u, org)}`;
 }
 
 /* ---------- CXO: read-only across the organisation ---------- */
@@ -51,10 +51,10 @@ function cxoHome(u, org) {
       ${statCard('Facilities', activeFacilities(org.id).length, 'active')}
       ${statCard('Managers', people.filter(p => p.role === 'Manager').length, 'active')}
       ${statCard('Engineers', people.filter(p => p.role === 'Engineer').length, 'active')}
-      ${statCard('Uploads', typeof uploadsInOrg === 'function' ? uploadsInOrg(org.id).length : 0, 'recorded')}
+      ${statCard('Uploads', uploadsInOrg(org.id).length, 'recorded')}
     </div>
     <div class="card section"><div class="row between"><h2>Manager stats</h2>${btn('Open', "go('manager-stats')", 'link')}</div>${managerStatsTable(org)}</div>
-    ${typeof dataSummaryCard === 'function' ? dataSummaryCard(u, org) : ''}`;
+    ${dataSummaryCard(u, org)}`;
 }
 
 /* ---------- Manager: assigned facilities and Engineer progress ---------- */
@@ -64,13 +64,13 @@ function managerHome(u, org) {
   return pageHead(`Hello, ${esc(u.name.split(' ')[0])}`, `You oversee ${facilities.length} facilit${facilities.length === 1 ? 'y' : 'ies'} and ${reports.length} Engineer${reports.length === 1 ? '' : 's'} report to you.`, '', 'Manager') +
     `<div class="grid">${facilities.map(f => facilityCard(u, org, f)).join('') || '<div class="card empty">No facilities assigned to you yet. Your Org Admin assigns them.</div>'}</div>
     <div class="card section"><h2>Engineer progress</h2>${engineerProgressTable(u, org)}</div>
-    ${typeof dataSummaryCard === 'function' ? dataSummaryCard(u, org) : ''}`;
+    ${dataSummaryCard(u, org)}`;
 }
 
 function engineerProgressTable(manager, org) {
   const engineers = peopleVisibleTo(manager, org.id).filter(p => p.role === 'Engineer' && userStatus(p) !== 'Deactivated');
   return table(['Engineer', 'Reports to', 'Facilities', 'Uploads', 'Last upload', 'Status'], engineers.map(e => {
-    const ups = typeof uploadsByUser === 'function' ? uploadsByUser(e.id).filter(x => manager.facilityIds.includes(x.facilityId)) : [];
+    const ups = uploadsByUser(e.id).filter(x => manager.facilityIds.includes(x.facilityId));
     return [esc(e.name) + (e.managerId === manager.id ? ' <span class="tag">Direct report</span>' : ''), esc(userName(e.managerId)),
       esc(e.facilityIds.filter(f => manager.facilityIds.includes(f)).map(facilityName).join(', ')), ups.length, ups[0] ? fmtDate(ups[0].at) : '—', badge(userStatus(e))];
   }), 'No Engineers at your facilities yet.');
@@ -82,7 +82,7 @@ function engineerHome(u, org) {
   return pageHead(`Hello, ${esc(u.name.split(' ')[0])}`, `You report to ${esc(userName(u.managerId))}. Pick one of your facilities to upload activity data.`, '', 'Engineer') +
     (facilities.length ? `<div class="grid">${facilities.map(f => facilityCard(u, org, f)).join('')}</div>`
       : '<div class="card empty"><h2>No facility assigned yet</h2><p class="muted">Your Org Admin will assign you to one or more facilities. Until then you cannot upload.</p></div>') +
-    (typeof dataSummaryCard === 'function' ? dataSummaryCard(u, org) : '');
+    dataSummaryCard(u, org);
 }
 
 /* ---------- Manager stats (Org Admin and CXO) ---------- */
@@ -94,9 +94,9 @@ VIEWS['manager-stats'] = function (u, org) {
 
 function managerStatsTable(org) {
   const managers = db.users.filter(m => m.role === 'Manager' && m.orgIds.includes(org.id) && userStatus(m) !== 'Deactivated');
-  return table(['Manager', 'Status', 'Facilities', 'Direct reports', 'Uploads at their facilities', 'Waiting for review'], managers.map(m => {
-    const ups = typeof uploadsInOrg === 'function' ? uploadsInOrg(org.id).filter(x => m.facilityIds.includes(x.facilityId)) : [];
+  return table(['Manager', 'Status', 'Facilities', 'Direct reports', 'Uploads at their facilities', 'Last upload'], managers.map(m => {
+    const ups = uploadsInOrg(org.id).filter(x => m.facilityIds.includes(x.facilityId));
     return [esc(m.name), badge(userStatus(m)), esc(m.facilityIds.map(facilityName).join(', ') || 'None'),
-      directReports(m.id).map(r => esc(r.name)).join(', ') || '0', ups.length, ups.filter(x => x.status === 'Submitted').length];
+      directReports(m.id).map(r => esc(r.name)).join(', ') || '0', ups.length, ups[0] ? fmtDate(ups[0].at) : '—'];
   }), 'No Managers yet.');
 }

@@ -3,12 +3,14 @@
  */
 
 /* Call before any change. Shows why and returns false when the organisation is read-only. */
-function requireWritable(org = currentOrg(), allowAwaitingPlan = false) {
-  const state = orgState(org);
-  if (state === 'Active' || (allowAwaitingPlan && state === 'Awaiting plan')) return true;
+function requireWritable(org = currentOrg(), profileEdit = false) {
+  if (orgIsWritable(org) || (profileEdit && canEditProfile(org))) return true;
   toast(readOnlyReason(org));
   return false;
 }
+
+/* The profile stays editable while waiting for a plan and while the plan is stopped (decision 5). Not after it expires. */
+const canEditProfile = org => ['Active', 'Awaiting plan', 'Suspended'].includes(orgState(org));
 
 /* Shown whenever a plan limit blocks an action (flow 7 step 1). */
 function limitBlockedModal(message, limitKey) {
@@ -45,7 +47,7 @@ function saveOrg() {
   const name = value('on'), country = value('oc');
   if (!name || !country) return formError('Enter the organisation name and country.');
   if (db.orgs.some(o => o.name.toLowerCase() === name.toLowerCase())) return formError('An organisation with that name already exists.');
-  const org = { id: 'o-' + uid(), name, country, industry: value('oi'), status: 'Awaiting plan', createdBy: u.id, createdAt: nowIso(), plan: null };
+  const org = { id: 'o-' + uid(), name, country, industry: value('oi'), boundary: 'Operational control', standard: 'GHG Protocol', dualScope2: false, status: 'Awaiting plan', createdBy: u.id, createdAt: nowIso(), plan: null };
   if (u.pendingPlan) { org.pendingPlan = u.pendingPlan; delete u.pendingPlan; }
   db.orgs.push(org);
   u.orgIds.push(org.id);
@@ -59,7 +61,7 @@ function saveOrg() {
 
 VIEWS.settings = function (u, org) {
   if (!org) return noOrgYet();
-  const editable = orgState(org) !== 'Suspended' && orgState(org) !== 'Expired';
+  const editable = canEditProfile(org);
   return pageHead('Organisation settings', 'The organisation profile. Branding arrives in V2.', '', org.name) +
     `<div class="card"><div class="formgrid">
       ${field('Organisation name', inp('sn', org.name, editable ? '' : 'disabled'))}
@@ -68,6 +70,9 @@ VIEWS.settings = function (u, org) {
       ${field('Address', inp('sa', org.address || '', editable ? '' : 'disabled'))}
       ${field('Contact email', inp('se', org.contactEmail || '', editable ? 'type="email"' : 'disabled'))}
       ${field('Reporting year starts', sel('sy', ['January', 'April', 'July', 'October'].map(m => opt(m, m, org.yearStart || 'January')).join(''), editable ? '' : 'disabled'))}
+      ${field('Consolidation approach', sel('sb', ['Operational control', 'Financial control', 'Equity share'].map(m => opt(m, m, org.boundary || 'Operational control')).join(''), editable ? '' : 'disabled'))}
+      ${field('Reporting standard', sel('ss', ['GHG Protocol', 'ISO 14064-1 (demo)'].map(m => opt(m, m, org.standard || 'GHG Protocol')).join(''), editable ? '' : 'disabled'))}
+      ${field('Scope 2 reporting', sel('sd', opt('0', 'Location-based only', org.dualScope2 ? '1' : '0') + opt('1', 'Dual reporting (demo)', org.dualScope2 ? '1' : '0'), editable ? '' : 'disabled'))}
     </div>${editable ? `<div id="formerr" class="err"></div>${btn('Save profile', 'saveSettings()', 'primary')}` : ''}</div>
     <div class="card section"><h2>Prototype data</h2><p class="muted">Changes are kept in this browser only.</p>
       <div class="row section">${btn('Export demo backup', "download('SA-Nest-demo-backup.json', JSON.stringify(db, null, 2), 'application/json')")}${btn('Reset demo', 'resetDemo()', 'danger')}</div></div>`;
@@ -77,7 +82,7 @@ function saveSettings() {
   const org = currentOrg();
   if (!requireWritable(org, true)) return;
   if (!value('sn') || !value('sc')) return formError('Name and country are required.');
-  Object.assign(org, { name: value('sn'), country: value('sc'), industry: value('si'), address: value('sa'), contactEmail: value('se'), yearStart: value('sy'), profileCompleted: true });
+  Object.assign(org, { name: value('sn'), country: value('sc'), industry: value('si'), address: value('sa'), contactEmail: value('se'), yearStart: value('sy'), boundary: value('sb'), standard: value('ss'), dualScope2: value('sd') === '1', profileCompleted: true });
   logAction('Organisation settings changed', org.name);
   render();
   toast('Profile saved');

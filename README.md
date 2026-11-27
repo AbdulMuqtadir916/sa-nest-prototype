@@ -21,11 +21,26 @@ The sign-in page lists the 10-step V1 setup flow. In short:
 5. The **Org Admin** completes the profile, adds facilities, invites the CXO and Managers, links Managers to facilities,
    invites Engineers with one reporting Manager each.
 6. An **Engineer** accepts, picks an assigned facility and uploads data.
-7. **Managers** of that facility see and review the upload. The **CXO** sees everything read-only.
+7. **Managers** of that facility see the upload straight away (there is no review step in V1). The **CXO** sees everything read-only.
 
 Ready-made data also covers the document's example (Manager A on Facilities 1 and 2, Manager B sharing Facility 2),
 an Org Admin with two organisations, a pending and an expired invitation, a deactivated user, an unassigned Engineer,
-an organisation at its facility limit with an open upgrade request, and an organisation whose plan has ended (read-only).
+an organisation at its facility limit with an open upgrade request, an organisation whose plan has ended (read-only), uploads by a
+now-deactivated Engineer (still showing their name), a revised record with version history, and an organisation-level source.
+
+## GHG screens
+
+The original prototype's carbon accounting screens are all here, scoped by role: Equipment & meters, Emission sources
+(with "not applicable" decisions), Data collection (manual entry and CSV/XLSX upload), GHG inventory, History, Reports
+(save snapshots, close and reopen a period) and the Factor library. Every page has a facility and period filter.
+
+| Role | GHG access |
+| --- | --- |
+| Org Admin | Everything in the organisation, including organisation-level sources; enters data anywhere; closes periods |
+| CXO | Everything in the organisation, read-only, plus organisation reports |
+| Manager | Assigned facilities, read-only |
+| Engineer | Assigned facilities; enters and uploads data there |
+| Platform Admin | None (never sees organisation data) |
 
 ## Roles
 
@@ -49,12 +64,14 @@ js/data/                MOCK DATA ONLY: edit these to change the demo
   organisations.js      organisations, facilities, upgrade requests
   users.js              people, roles, assignments, invitations
   ledger.js             starting ledger entries
-  ghg.js                emission factors, sources and uploads (small slice of the GHG features)
+  ghg.js                emission factors, equipment, sources and activity records
 js/core/                RULES FROM THE DOCUMENT
   permissions.js        the permission matrix as a table: change a rule here and every screen follows
   people.js             user status, invitation expiry, who can see whom
   plans.js              organisation state, limits and usage
   ledger.js             logging and ledger visibility per role
+  ghg.js                who sees and edits which GHG data, emission calculations
+  spreadsheet.js        CSV and XLSX reading for uploads
   store.js              load/save to the browser, reset
   auth.js               mock sign-in, sign-out, accepting invitations
 js/app.js               sidebar per role and the render loop
@@ -65,7 +82,7 @@ js/views/               one file per area of the app
   overview.js           home screen for each role, Manager stats
   facilities.js         facilities and Manager assignment
   people.js             the organisation user panel: add user, assignments, roles, deactivation
-  data.js               upload, review, dashboard, reports
+  ghg.js                equipment, sources, data collection, inventory, history, reports, factor library
   records.js            ledger, roles & permissions reference
 original/               the prototype and document this was built from
 ```
@@ -73,13 +90,16 @@ original/               the prototype and document this was built from
 To add a screen: write a function in `js/views/`, register it with `VIEWS['key'] = ...`, and list the key under the
 right roles in `NAVIGATION` in `js/app.js`.
 
-## Assumptions where the document is open
+## Decisions on the document's open questions
+
+Confirmed with abdul on 27 Nov 2026.
 
 | Question | What the prototype does |
 | --- | --- |
-| Who reviews Engineer uploads when several Managers oversee a facility? | Any Manager assigned to that facility (or the Org Admin) can approve or return it. First decision counts; the ledger shows who. |
+| Who reviews Engineer uploads when several Managers oversee a facility? | Nobody: V1 has no review step. Data counts as soon as it is saved and shows at once for the facility's Managers and the CXO. Revisions keep every version. |
 | How long is an invitation valid? | 7 days (`INVITE_VALID_DAYS` in `js/core/people.js`). "Simulate expiry" shows the Expired state. |
-| What can an Org Admin do before the plan is applied? | Edit the organisation profile only. Facilities and invitations unlock once SA-NEST applies the plan. |
+| What can an Org Admin do before the plan is applied? | View and edit the organisation profile only. The same applies when the Platform Admin stops an organisation's plan ("Stop plan"). Facilities, invitations and data unlock once the plan is applied or restarted. After a plan's end date the organisation is fully read-only. |
+| Who adds facilities? | The Org Admin, as the document says. The Platform Admin sets plans and invites the first Org Admin. |
 | Who can see a Manager's "own" people list? | Their direct reports plus Engineers and Managers at their assigned facilities. |
 
 ## Out of scope (for the design hand-off)
@@ -88,6 +108,5 @@ right roles in `NAVIGATION` in `js/app.js`.
   branding, is still open.
 - UI libraries, the design system, templates and core scoping features are intentionally untouched: the styling is the
   original prototype's, kept simple so it can be replaced.
-- The GHG features are a small slice (sources, upload, review, dashboard, CSV reports) to show data flowing through the
-  hierarchy. The original prototype's fuller GHG screens are in `original/`.
+- GHG calculations use invented demo factors and are not for disclosure. Scope 3 is not covered.
 - Sign-in, invitations and the ledger are simulations. Nothing is secure, emailed or tamper-proof.

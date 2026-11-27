@@ -15,7 +15,7 @@ VIEWS['pa-home'] = function (u) {
       ${statCard('Organisations', db.orgs.length, 'total')}
       ${statCard('Active', states.filter(s => s === 'Active').length, 'organisations')}
       ${statCard('Awaiting plan', waiting.length, 'organisations')}
-      ${statCard('Read-only', states.filter(s => s === 'Suspended' || s === 'Expired').length, 'suspended or expired')}
+      ${statCard('Stopped or expired', states.filter(s => s === 'Suspended' || s === 'Expired').length, 'organisations')}
     </div>
     <div class="two section">
       <div class="card"><h2>Needs a plan</h2><p class="muted">Organisations created by an Org Admin and waiting for you to apply plan terms.</p>
@@ -36,7 +36,7 @@ VIEWS['pa-home'] = function (u) {
 };
 
 VIEWS['pa-orgs'] = function () {
-  return pageHead('Organisations', 'Set or change a plan, suspend or reactivate an organisation. Changes apply at once.', '', 'Platform Admin') +
+  return pageHead('Organisations', 'Set or change a plan, or stop and restart it. Changes apply at once. A stopped organisation keeps its data and can only edit its profile.', '', 'Platform Admin') +
     `<div class="card">${table(['Organisation', 'Org Admins', 'Plan', 'Runs', 'Facilities', 'People', 'Status', ''], db.orgs.map(o => {
       const used = usage(o.id), lim = limitsOf(o), state = orgState(o);
       const people = peopleInOrg(o.id).filter(usesSeat).length;
@@ -49,7 +49,7 @@ VIEWS['pa-orgs'] = function () {
         people,
         badge(state),
         btn(o.plan ? 'Plan & limits' : 'Apply plan', `planModal('${o.id}')`, o.plan ? '' : 'primary') +
-          (o.plan ? btn(o.status === 'Suspended' ? 'Reactivate' : 'Suspend', `toggleSuspend('${o.id}')`, o.status === 'Suspended' ? '' : 'danger') : '') +
+          (o.plan ? btn(o.status === 'Suspended' ? 'Restart plan' : 'Stop plan', `toggleSuspend('${o.id}')`, o.status === 'Suspended' ? '' : 'danger') : '') +
           btn('Usage', `usageModal('${o.id}')`)
       ];
     }))}</div>`;
@@ -169,9 +169,9 @@ function savePlan(orgId, requestId) {
 function toggleSuspend(orgId) {
   const o = findOrg(orgId);
   const suspending = o.status !== 'Suspended';
-  if (suspending && !confirm(`Suspend ${o.name}? Its people can still sign in, view and export, but cannot add or change anything.`)) return;
+  if (suspending && !confirm(`Stop the plan for ${o.name}? Its people can still sign in, view, export and edit the profile, but cannot add or change anything else.`)) return;
   o.status = suspending ? 'Suspended' : 'Active';
-  logAction(suspending ? 'Organisation suspended' : 'Organisation reactivated', o.name, { orgId });
+  logAction(suspending ? 'Plan stopped' : 'Plan restarted', o.name, { orgId });
   render();
 }
 

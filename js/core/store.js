@@ -5,7 +5,7 @@
  * localStorage so the demo survives a page refresh. Reset demo puts the mock data back.
  * There is no server: swap load()/save() for API calls when a backend exists.
  */
-const STORE_KEY = 'sanest-hierarchy-v1';
+const STORE_KEY = 'sanest-hierarchy-v2';
 const SESSION_KEY = 'sanest-hierarchy-session-v1';
 
 let db;          // all data, see seedDatabase() for its shape
@@ -20,7 +20,7 @@ function seedDatabase() {
     users: copy(MOCK_USERS),
     upgradeRequests: copy(MOCK_UPGRADE_REQUESTS),
     ledger: copy(MOCK_LEDGER).map(e => ({ id: uid(), ...e })).reverse(), // newest first
-    ghg: typeof seedGhgData === 'function' ? seedGhgData() : null
+    ghg: seedGhgData()
   };
 }
 
