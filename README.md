@@ -1,5 +1,7 @@
 # SA-Nest · V1 user hierarchy prototype
 
+> Taking over this project? Start with [HANDOFF.md](HANDOFF.md). AI assistants: see [CLAUDE.md](CLAUDE.md).
+
 A clickable prototype of the SA-Nest user hierarchy, built from the
 **SA-NEST User Hierarchy & Workflows** document (V1). Everything runs in the browser on mock data.
 There is no server and no real security.
