@@ -1,0 +1,27 @@
+/* Styles added for the user hierarchy screens. Uses the same tokens as styles.css. */
+
+/* Signed-out layout: no sidebar or top bar */
+body.signed-out .app { display: block; }
+body.signed-out .side, body.signed-out .top { display: none; }
+.login { max-width: 1100px; margin: 20px auto; }
+.login-brand { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; font-size: 24px; letter-spacing: -1px; }
+.login-brand small { display: block; font-size: 12px; letter-spacing: 0; color: var(--muted); }
+
+/* One-click demo account buttons */
+.account { display: flex; justify-content: space-between; gap: 10px; width: 100%; text-align: left; margin-top: 6px; font-weight: 500; }
+.account span { color: var(--muted); font-size: 12px; text-align: right; }
+
+/* Signed-in user in the top bar */
+.whoami { display: flex; flex-direction: column; text-align: right; line-height: 1.25; }
+.whoami small { font-size: 11px; }
+
+/* Checkbox lists (facility pickers) */
+.checklist { display: grid; gap: 6px; max-height: 220px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+.check { display: flex; gap: 8px; align-items: center; font-weight: 500; font-size: 13px; color: var(--ink); margin: 0; }
+.check input { width: auto; }
+
+.stepnum.done { background: var(--green); color: white; }
+.bar i.full { background: #b0563c; }
+.mine { color: var(--green); font-weight: 750; }
+textarea { border: 1px solid #cbd9d1; border-radius: 8px; padding: 10px; width: 100%; }
+td .row { flex-wrap: nowrap; }

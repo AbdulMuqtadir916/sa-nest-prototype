@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SA-Nest | User hierarchy prototype</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/hierarchy.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="side" id="side"></aside>
+    <main class="main">
+      <header class="top" id="top"></header>
+      <div class="body" id="body"></div>
+    </main>
+  </div>
+
+  <div class="modalshade" id="shade">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
+      <div class="modalhead"><h2 id="mt"></h2><button onclick="closeModal()" aria-label="Close">✕</button></div>
+      <div id="mc"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <!-- Plain scripts, loaded in order. No build step: open this file in a browser. -->
+  <!-- 1. Helpers -->
+  <script src="js/core/utils.js"></script>
+  <!-- 2. Mock data (edit these to change the demo) -->
+  <script src="js/data/plans.js"></script>
+  <script src="js/data/organisations.js"></script>
+  <script src="js/data/users.js"></script>
+  <script src="js/data/ledger.js"></script>
+  <script src="js/data/ghg.js"></script>
+  <!-- 3. Rules from the hierarchy document -->
+  <script src="js/core/store.js"></script>
+  <script src="js/core/permissions.js"></script>
+  <script src="js/core/people.js"></script>
+  <script src="js/core/plans.js"></script>
+  <script src="js/core/ledger.js"></script>
+  <script src="js/core/auth.js"></script>
+  <!-- 4. App shell and screens -->
+  <script src="js/app.js"></script>
+  <script src="js/views/login.js"></script>
+  <script src="js/views/platform-admin.js"></script>
+  <script src="js/views/organisation.js"></script>
+  <script src="js/views/overview.js"></script>
+  <script src="js/views/facilities.js"></script>
+  <script src="js/views/people.js"></script>
+  <script src="js/views/data.js"></script>
+  <script src="js/views/records.js"></script>
+  <script>boot();</script>
+</body>
+</html>
